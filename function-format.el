@@ -16,7 +16,7 @@
 ;;
 ;; Steps of functionality:
 ;;
-;;   1. Perform the formatting on the next nearest '(' without
+;;   [X] 1. Perform the formatting on the next nearest '(' without
 ;;   examining column width.
 ;;
 ;;   2. Perform the formatting from nearest function call (i.e.
@@ -39,17 +39,41 @@
 
 ;; Could use some cleaning up, but hit the very basic level of
 ;; functionality.
+
 (defun format-function ()
   (interactive)
   (save-excursion
     (search-forward "(")
-    (newline)
-    (search-backward "(")
     (backward-char)  ; Set point to ".(" rather than "(."
     (let ((beg (point)))
-      (forward-list)  ; Jump to matching brace
-      (replace-string "," ",\n" nil beg (point))
-      ;; Indent the resulting string replace.
-      (goto-char beg)
-      (forward-list)
-      (indent-region beg (point)))))
+      ;; If the next char is CR, then we join things
+      (if (= (char-after (+ 1 (point))) 10)
+          (progn
+            (delete-indentation 1) ; join line up
+            (goto-char beg)
+            (forward-list)
+            (format-function-make-single-line beg (point)))
+        ;; Otherwise we split it up.
+        (progn 
+          (forward-char)
+          (newline)
+          (goto-char beg)
+          (forward-list)  ; Jump to matching brace
+          (replace-string "," ",\n" nil beg (point))
+          ;; Indent the resulting string replace.
+          (goto-char beg)
+          (forward-list)
+          (indent-region beg (point)))))))
+
+
+;; TODO: This will be integrated into the behavior of the main
+;; formatting so that using the main function "toggles" between the
+;; two indentation styles. This is merely the second case.
+(defun format-function-make-single-line (p m)
+  (interactive "r")
+  (let ((boundary (max p m))   ; get the largest of point and mark
+        (start (min p m)))     ; get the starting point
+    ;; TODO: It'd be nice if this 'search-forward' didn't print messages
+    (goto-char start)
+    (while (search-forward "," boundary)
+      (delete-indentation 1))))
