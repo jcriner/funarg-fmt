@@ -19,8 +19,9 @@
 ;;   [X] 1. Perform the formatting on the next nearest '(' without
 ;;   examining column width.
 ;;
-;;   2. Perform the formatting from nearest function call (i.e.
-;;   perform as expected when called from within an arg list).
+;;   [X] (still a little fiddly) 2. Perform the formatting from
+;;   nearest function call (i.e. perform as expected when called from
+;;   within an arg list).
 ;;
 ;;   3. Perform the format conditionally on column width (as-needed basis).
 ;;
@@ -37,12 +38,13 @@
 ;;   some use of semantic units within the program (i.e. how to indent
 ;;   something).
 
-;; Could use some cleaning up, but hit the very basic level of
-;; functionality.
-
 (defun format-function ()
   (interactive)
   (save-excursion
+    ;; Note: This version of c-beginning-... does not move to the
+    ;; preceding statement if it is as the start of a C statement
+    ;; already. Thus, it prevents a stupid bug.
+    (c-beginning-of-statement-1)
     (search-forward "(")
     (backward-char)  ; Set point to ".(" rather than "(."
     (let ((beg (point)))
