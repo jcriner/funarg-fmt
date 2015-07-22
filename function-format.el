@@ -38,12 +38,25 @@
 ;;   some use of semantic units within the program (i.e. how to indent
 ;;   something).
 
+;; There's a bit of code--clang-format.el--which takes a superior
+;; approach to this for C++ code by integrating with the clang-format
+;; tool.
+;;
+;; This work continues only as I learn and practice Emacs Lisp.
+
 (defun format-function ()
   (interactive)
   (save-excursion
     ;; Note: This version of c-beginning-... does not move to the
     ;; preceding statement if it is as the start of a C statement
     ;; already. Thus, it prevents a stupid bug.
+    ;;
+    ;; Another note: This results in a new limitation. If we are
+    ;; currently in an arg-list, then we will only jump to the start
+    ;; of the arg-list, rather than the start of the function call.
+    ;; Finally, the start of the function call is not the entirety of
+    ;; a statement, if the statement includes an assingment. So this
+    ;; is very unpredictable.
     (c-beginning-of-statement-1)
     (search-forward "(")
     (backward-char)  ; Set point to ".(" rather than "(."
